@@ -1,0 +1,99 @@
+﻿@page "/customers"
+@page "/customers/index"
+@using JINIApp.Shared.Models
+@using GridBlazor
+@using GridShared
+@using Microsoft.Extensions.Primitives
+@using System.Globalization
+@using System.Threading.Tasks
+@using JINIApp.Client.ColumnCollections;
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject ICrudDataService<Customer> customerService
+
+<h1>고객</h1>
+
+@if (_task.IsCompleted)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <GridComponent T="Customer" Grid="@_grid" Mode="_mode" Keys="_keys"></GridComponent>
+        </div>
+    </div>
+}
+else
+{
+    <p><em>Loading...</em></p>
+}
+
+@code
+{
+    private CGrid<Customer> _grid;
+    private object[] _keys;
+    private GridMode _mode;
+    private Task _task;
+
+    [Parameter]
+    public string CustomerId { get; set; }
+
+    [Parameter]
+    public string Mode { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var locale = CultureInfo.CurrentCulture;
+
+
+        var query = new QueryDictionary<StringValues>();
+        string url = NavigationManager.BaseUri + "api/Customers";
+
+        var client = new GridClient<Customer>(HttpClient, url, query, false, "customersGrid", ColumnCollections.CustomerColumns)
+            .Sortable()
+            .Filterable()
+            .SetStriped(true)
+            .Crud(true, customerService)
+            .WithMultipleFilters()
+            .WithGridItemsCount()
+            .Selectable(true)
+            .SetHeaderCrudButtons(true)
+            .SetCrudFormLabels("추가", "상세", "수정", "삭제");
+
+        _grid = client.Grid;
+
+        if (!string.IsNullOrWhiteSpace(CustomerId))
+        {
+            int customerId;
+            bool result = int.TryParse(CustomerId, out customerId);
+            if (result)
+            {
+                if (Mode.ToLower() == "create")
+                {
+                    _keys = new object[] { customerId };
+                    _mode = GridMode.Create;
+                }
+                else if (Mode.ToLower() == "read")
+                {
+                    _keys = new object[] { customerId };
+                    _mode = GridMode.Read;
+                }
+                else if (Mode.ToLower() == "update")
+                {
+                    _keys = new object[] { customerId };
+                    _mode = GridMode.Update;
+                }
+                else if (Mode.ToLower() == "delete")
+                {
+                    _keys = new object[] { customerId };
+                    _mode = GridMode.Delete;
+                }
+            }
+        }
+
+        // Set new customers to grid
+        _task = client.UpdateGrid();
+        await _task;
+    }
+}
+
+
+

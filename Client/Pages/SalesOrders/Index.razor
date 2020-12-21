@@ -1,0 +1,105 @@
+﻿@page "/salesOrders"
+@page "/salesOrders/index"
+@page "/salesOrders/{GridState}"
+@using JINIApp.Shared.Models
+@using GridBlazor
+@using GridShared
+@using Microsoft.Extensions.Primitives
+@using System.Globalization
+@using System.Threading.Tasks
+@using JINIApp.Client.ColumnCollections;
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject ICrudDataService<SalesOrder> salesOrderService
+
+<h1>주문</h1>
+
+@if (_task.IsCompleted)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <GridComponent T="SalesOrder" Grid="@_grid" Mode="_mode" Keys="_keys"></GridComponent>
+        </div>
+    </div>
+}
+else
+{
+    <p><em>Loading...</em></p>
+}
+
+@code
+{
+    private CGrid<SalesOrder> _grid;
+    private object[] _keys;
+    private GridMode _mode;
+    private Task _task;
+
+    [Parameter]
+    public string SalesOrderId { get; set; }
+
+    [Parameter]
+    public string Mode { get; set; }
+
+    [Parameter]
+    public string GridState { get; set; }
+    
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var locale = CultureInfo.GetCultureInfo("ko-kr");
+
+        var query = new QueryDictionary<StringValues>();
+        string url = NavigationManager.BaseUri + "api/SalesOrderExtends/GetAllSalesOrderWithCustomer";
+
+        var client = new GridClient<SalesOrder>(HttpClient, url, query, false, "salesOrdersGrid"
+            , c => ColumnCollections.SalesOrderColumnsWithCustomer(c, NavigationManager.BaseUri, "salesOrders")
+            , locale)
+            .Sortable()
+            .Filterable()
+            .SetStriped(true)
+            .Crud(true, salesOrderService)
+            .WithMultipleFilters()
+            .WithGridItemsCount()
+            .Selectable(true)
+            .SetHeaderCrudButtons(true)
+            .SetCrudFormLabels("추가", "상세", "수정", "삭제");
+
+        _grid = client.Grid;
+
+        if (!string.IsNullOrWhiteSpace(SalesOrderId))
+        {
+            int salesOrderId;
+            bool result = int.TryParse(SalesOrderId, out salesOrderId);
+            if (result)
+            {
+                if (Mode.ToLower() == "create")
+                {
+                    _keys = new object[] { salesOrderId };
+                    _mode = GridMode.Create;
+                }
+                else if (Mode.ToLower() == "read")
+                {
+                    _keys = new object[] { salesOrderId };
+                    _mode = GridMode.Read;
+                }
+                else if (Mode.ToLower() == "update")
+                {
+                    _keys = new object[] { salesOrderId };
+                    _mode = GridMode.Update;
+                }
+                else if (Mode.ToLower() == "delete")
+                {
+                    _keys = new object[] { salesOrderId };
+                    _mode = GridMode.Delete;
+                }
+            }
+        }
+
+        // Set new salesOrders to grid
+        _task = client.UpdateGrid();
+        await _task;
+    }
+}
+
+
+

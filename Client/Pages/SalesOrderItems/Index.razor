@@ -1,0 +1,123 @@
+﻿@page "/salesOrderItems"
+@page "/salesOrderItems/Index/{SalesOrderID}/{ReturnUrl}/{GridState}"
+@using JINIApp.Shared.Models
+@using GridBlazor
+@using GridShared
+@using Microsoft.Extensions.Primitives
+@using System.Globalization
+@using System.Threading.Tasks
+@using JINIApp.Client.ColumnCollections;
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject ICrudDataService<SalesOrderItem> salesOrderItemService
+
+<h1>주문상세</h1>
+
+@if (_task.IsCompleted)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <GridComponent T="SalesOrderItem" Grid="@_grid" Mode="_mode" Keys="_keys"></GridComponent>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-5">
+            <button type="button" class="btn btn-primary btn-md" @onclick="Back">주문</button>
+        </div>
+    </div>
+}
+else
+{
+    <p><em>Loading...</em></p>
+}
+
+@code
+{
+    private CGrid<SalesOrderItem> _grid;
+    private object[] _keys;
+    private GridMode _mode;
+    private Task _task;
+
+    [Parameter]
+    public string SalesOrderItemId { get; set; }
+
+    [Parameter]
+    public string SalesOrderID { get; set; }
+
+
+    [Parameter]
+    public string Mode { get; set; }
+
+    [Parameter]
+    public string ReturnUrl { get; set; }
+
+    [Parameter]
+    public string GridState { get; set; }
+
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var locale = CultureInfo.CurrentCulture;
+
+
+        var query = new QueryDictionary<StringValues>();
+        string url = NavigationManager.BaseUri + $"api/SalesOrderItemExtends/GetSalesOrderItemExtendbySalesOrderId?salesOrderId={SalesOrderID}";
+
+        var client = new GridClient<SalesOrderItem>(HttpClient, url, query, false, "salesOrderItemsGrid"
+            , c => ColumnCollections.SalesOrderItemColumns(c, NavigationManager.BaseUri, SalesOrderID))
+            .Sortable()
+            .Filterable()
+            .SetStriped(true)
+            .Crud(true, salesOrderItemService)
+            .WithMultipleFilters()
+            .WithGridItemsCount()
+            .Selectable(true)
+            .SetHeaderCrudButtons(true)
+            .SetCrudFormLabels("추가", "상세", "수정", "삭제");
+
+        _grid = client.Grid;
+
+        if (!string.IsNullOrWhiteSpace(SalesOrderItemId))
+        {
+            int salesOrderId;
+            bool result = int.TryParse(SalesOrderID, out salesOrderId);
+            if (result)
+            {
+                if (Mode.ToLower() == "create")
+                {
+                    _keys = new object[] { salesOrderId };
+                    _mode = GridMode.Create;
+                }
+                else if (Mode.ToLower() == "read")
+                {
+                    _keys = new object[] { salesOrderId };
+                    _mode = GridMode.Read;
+                }
+                else if (Mode.ToLower() == "update")
+                {
+                    _keys = new object[] { salesOrderId };
+                    _mode = GridMode.Update;
+                }
+                else if (Mode.ToLower() == "delete")
+                {
+                    _keys = new object[] { salesOrderId };
+                    _mode = GridMode.Delete;
+                }
+            }
+        }
+
+        // Set new salesOrderItems to grid
+        _task = client.UpdateGrid();
+        await _task;
+    }
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo($"{ReturnUrl}/{GridState}");
+    }
+}
+
+
+

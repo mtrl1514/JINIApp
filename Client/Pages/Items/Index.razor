@@ -1,0 +1,107 @@
+﻿@page "/items"
+@page "/items/index"
+@using JINIApp.Shared.Models
+@using GridBlazor
+@using GridShared
+@using Microsoft.Extensions.Primitives
+@using System.Globalization
+@using System.Threading.Tasks
+@using JINIApp.Client.ColumnCollections;
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject ICrudDataService<Item> itemService
+
+<h1>제품</h1>
+
+@if (_task.IsCompleted)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <GridComponent T="Item" Grid="@_grid" Mode="_mode" Keys="_keys"></GridComponent>
+        </div>
+    </div>
+}
+else
+{
+    <p><em>Loading...</em></p>
+}
+
+@code
+{
+    private CGrid<Item> _grid;
+    private object[] _keys;
+    private GridMode _mode;
+    private Task _task;
+
+    [Parameter]
+    public string ItemId { get; set; }
+
+    [Parameter]
+    public string Mode { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var locale = CultureInfo.CurrentCulture;
+
+
+        var query = new QueryDictionary<StringValues>();
+        string url = NavigationManager.BaseUri + "api/Items";
+
+        var client = new GridClient<Item>(HttpClient, url, query, false, "itemsGrid", ColumnCollections.ItemColumns)
+            .Sortable()
+            .Filterable()
+            .SetStriped(true)
+            .Crud(true, itemService)
+            .WithMultipleFilters()
+            .WithGridItemsCount()
+            .Selectable(true)
+            .SetHeaderCrudButtons(true)
+            .SetCrudFormLabels("추가", "상세", "수정", "삭제");
+
+        _grid = client.Grid;
+
+        if (!string.IsNullOrWhiteSpace(ItemId))
+        {
+            int itemId;
+            bool result = int.TryParse(ItemId, out itemId);
+            if (result)
+            {
+                if (Mode.ToLower() == "create")
+                {
+                    _keys = new object[] { itemId };
+                    _mode = GridMode.Create;
+                }
+                else if (Mode.ToLower() == "read")
+                {
+                    _keys = new object[] { itemId };
+                    _mode = GridMode.Read;
+                }
+                else if (Mode.ToLower() == "update")
+                {
+                    _keys = new object[] { itemId };
+                    _mode = GridMode.Update;
+                }
+                else if (Mode.ToLower() == "delete")
+                {
+                    _keys = new object[] { itemId };
+                    _mode = GridMode.Delete;
+                }
+            }
+        }
+
+        // Set new items to grid
+        _task = client.UpdateGrid();
+        await _task;
+    }
+
+    //private List<Item> items;
+    //public List<Item> filteredItems { get; set; }
+
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    items = filteredItems = await HttpClient.GetFromJsonAsync<List<Item>>("/api/Items");
+    //}
+}
+
+
+
