@@ -36,7 +36,8 @@ namespace JINIApp.Server.Controllers
                     .Sortable()
                     .Filterable()
                     .WithMultipleFilters()
-                    .WithGridItemsCount();
+                    .WithGridItemsCount()
+                    .Searchable(true, false, true);
 
             var salesOrders = server.ItemsToDisplay;
             return Ok(salesOrders);

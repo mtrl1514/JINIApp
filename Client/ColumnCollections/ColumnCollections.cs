@@ -60,23 +60,23 @@ namespace JINIApp.Client.ColumnCollections
 
         public static Action<IGridColumnCollection<SalesOrder>, string, object> SalesOrderColumnsWithCustomer = (c, path, obj) =>
         {
-            c.Add().Titled("주문상세").Encoded(false).Sanitized(false).RenderComponentAs<ItemButtonCell>(obj);
-            c.Add().Titled("매출").Encoded(false).Sanitized(false).RenderComponentAs<RevenueButtonCell>(obj);
+            //c.Add().Titled("주문상세").Encoded(false).Sanitized(false).RenderComponentAs<ItemButtonCell>(obj).SetWidth(5);
+            //c.Add().Titled("매출").Encoded(false).Sanitized(false).RenderComponentAs<RevenueButtonCell>(obj).SetWidth(5);
 
             /* Adding "ID" column: */
-            c.Add(o => o.ID, true).SetPrimaryKey(true).Titled("ID").SetWidth(20);
+            c.Add(o => o.ID, true).SetPrimaryKey(true).Titled("ID");
 
             /* Adding "Supplier" column: */
-            c.Add(o => o.SalesOrderNo).Titled("주문번호").SetWidth(50);                        
+            c.Add(o => o.SalesOrderNo).Titled("주문번호");
 
             /* Adding "Address" column: */
-            c.Add(o => o.SalesDate).Titled("주문일자").Format("{0:yyyy-MM-dd}").SetWidth(50);
+            c.Add(o => o.SalesDate).Titled("주문일자").Format("{0:yyyy-MM-dd}");
 
             /* Adding "ContactNumber" column: */
             c.Add(o => o.CustomerID, true).Titled("고객")
             .SetSelectField(true, o => o.Customer.ID + " - " + o.Customer.Name, path + $"api/CustomerExtends/GetAllCustomerForSelect");
 
-            c.Add(o => o.Customer.Name).Titled("고객").SetCrudHidden(true).SetWidth(150);
+            c.Add(o => o.Customer.Name).Titled("고객").SetCrudHidden(true);
 
             
 
@@ -98,48 +98,44 @@ namespace JINIApp.Client.ColumnCollections
 
         public static Action<IGridColumnCollection<SalesOrderItem>, string, object> SalesOrderItemColumns = (c, path, obj) =>
         {
-            c.Add(o => o.SalesOrderID, true).Titled("주문")
-            .SetSelectField(true, o => o.SalesOrder.SalesOrderNo + "-" + o.SalesOrder.Customer.Name, path + $"api/SalesOrderExtends/GetAllSalesOrderForSelect")
-            .SetReadOnlyOnUpdate(true);          
+            c.Add(o => o.SalesOrderID, true)
+            .SetPrimaryKey(true)            
+            .Titled("주문");
+            //.SetSelectField(true, o => o.SalesOrder.SalesOrderNo + "-" + o.SalesOrder.Customer.Name, path + $"api/SalesOrderExtends/GetAllSalesOrderForSelect")
+            //.SetReadOnlyOnUpdate(true);          
 
-            c.Add(o => o.SalesOrder.SalesOrderNo).Titled("주문번호")
-            .SetWidth(100).SetCrudHidden(true).SetReadOnlyOnUpdate(true);
-            
-            c.Add(o => o.ID).SetPrimaryKey(true).Titled("순번").SetWidth(20);
+            c.Add(o => o.ID).SetPrimaryKey(true).Titled("순번");
 
             c.Add(o => o.SalesDate).Titled("주문일자")
                 .SetInputType(InputType.Date)
-                .Format("{0:yyyy-MM-dd}")
-                .SetWidth(120);
+                .Format("{0:yyyy-MM-dd}");
 
             c.Add(o => o.ItemID, true).Titled("제품")
             .SetSelectField(true, o => o.Item.Supplier + " - " + o.Item.ItemName, path + $"api/ItemExtends/GetAllItemForSelect");
 
             c.Add(o => o.Item.Supplier).Titled("사업가게")
-            .SetWidth(100).SetCrudHidden(true).SetReadOnlyOnUpdate(true);
+            .SetCrudHidden(true).SetReadOnlyOnUpdate(true);
 
             c.Add(o => o.Item.ItemName).Titled("품명")
-            .SetWidth(100).SetCrudHidden(true).SetReadOnlyOnUpdate(true);
+            .SetCrudHidden(true).SetReadOnlyOnUpdate(true);
 
             /* Adding "ItemName" column: */
-            c.Add(o => o.ItemNumber).Titled("품번").SetWidth(150);
+            c.Add(o => o.ItemNumber).Titled("품번");
 
             /* Adding "ItemName" column: */
-            c.Add(o => o.ItemColor).Titled("색상").SetWidth(150);
+            c.Add(o => o.ItemColor).Titled("색상");
 
             c.Add(o => o.UnitCost)
                 .Titled("단가")
-                .SetWidth(100)
                 .Format("{0:0.##}");
 
             c.Add(o => o.SalesQuantity)
                 .Titled("주문수량")
-                .SetWidth(100)                
+                .SetWidth(20)                
                 .Format("{0:0.##}");
 
             c.Add().RenderValueAs(o => (o.UnitCost * o.SalesQuantity).ToString())
                 .Titled("단가총합")
-                .SetWidth(100)
                 .SetCrudHidden(true)
                 .Format("{0:0.##}"); ;
 
@@ -147,12 +143,10 @@ namespace JINIApp.Client.ColumnCollections
             /* Adding "ContactNumber" column: */
             c.Add(o => o.UnitProfit)
                 .Titled("단위이익")
-                .SetWidth(100)
                 .Format("{0:0.##}");
 
             c.Add().RenderValueAs(o => (o.UnitProfit * o.SalesQuantity).ToString())
                 .Titled("총수입금")
-                .SetWidth(100)
                 .SetCrudHidden(true)
                 .Format("{0:0.##}"); ;
 
@@ -160,7 +154,7 @@ namespace JINIApp.Client.ColumnCollections
 
 
             /* Adding "ItemName" column: */
-            c.Add(o => o.Comment).Titled("비고").SetWidth(150);
+            c.Add(o => o.Comment).Titled("비고");
 
 
 

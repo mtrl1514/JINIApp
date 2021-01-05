@@ -38,6 +38,7 @@ else
     private object[] _keys;
     private GridMode _mode;
     private Task _task;
+    private Task _task1;
 
     [Parameter]
     public string SalesOrderItemId { get; set; }
@@ -63,9 +64,10 @@ else
 
 
         var query = new QueryDictionary<StringValues>();
+        query.Add("SalesOrderId", SalesOrderID);
         string url = NavigationManager.BaseUri + $"api/SalesOrderItemExtends/GetSalesOrderItemExtendbySalesOrderId?salesOrderId={SalesOrderID}";
 
-        var client = new GridClient<SalesOrderItem>(HttpClient, url, query, false, "salesOrderItemsGrid"
+        var client = new GridClient<SalesOrderItem>(HttpClient, url, query, false, "salesOrderItemsGrid" + SalesOrderID
             , c => ColumnCollections.SalesOrderItemColumns(c, NavigationManager.BaseUri, SalesOrderID))
             .Sortable()
             .Filterable()
@@ -107,10 +109,10 @@ else
                 }
             }
         }
-
-        // Set new salesOrderItems to grid
         _task = client.UpdateGrid();
         await _task;
+
+
     }
 
     private void Back()
