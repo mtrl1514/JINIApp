@@ -99,12 +99,12 @@ namespace JINIApp.Client.ColumnCollections
         public static Action<IGridColumnCollection<SalesOrderItem>, string, object> SalesOrderItemColumns = (c, path, obj) =>
         {
             c.Add(o => o.SalesOrderID, true)
-            .SetPrimaryKey(true)            
+            .SetCrudHidden(true)
             .Titled("주문");
             //.SetSelectField(true, o => o.SalesOrder.SalesOrderNo + "-" + o.SalesOrder.Customer.Name, path + $"api/SalesOrderExtends/GetAllSalesOrderForSelect")
             //.SetReadOnlyOnUpdate(true);          
 
-            c.Add(o => o.ID).SetPrimaryKey(true).Titled("순번");
+            c.Add(o => o.ID, true).SetPrimaryKey(true).Titled("순번");
 
             c.Add(o => o.SalesDate).Titled("주문일자")
                 .SetInputType(InputType.Date)
